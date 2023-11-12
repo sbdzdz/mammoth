@@ -10,6 +10,7 @@ from backbone.ResNet18 import resnet18
 from codis.data.continual_benchmark import ContinualBenchmark
 from codis.data.infinite_dsprites import InfiniteDSprites, Latents
 from datasets.utils.continual_dataset import ContinualDataset
+from torch.utils.data import DataLoader
 
 
 class IDSprites(ContinualDataset):
@@ -22,6 +23,7 @@ class IDSprites(ContinualDataset):
     def __init__(self, args: Namespace) -> None:
         super().__init__(args)
         self.initialize_benchmark()
+        self.iter_benchmark = iter(self.benchmark)
 
     def initialize_benchmark(self):
         shapes = [
@@ -41,8 +43,9 @@ class IDSprites(ContinualDataset):
             }
         }
         cfg = OmegaConf.create(cfg)
-        print(cfg)
-        self.benchmark = ContinualBenchmark(cfg, shapes, exemplars)
+        self.benchmark = ContinualBenchmark(
+            cfg, shapes, exemplars, accumulate_test=False
+        )
 
     def generate_canonical_images(self, shapes, img_size: int):
         """Generate a batch of exemplars for training and visualization."""
@@ -65,7 +68,25 @@ class IDSprites(ContinualDataset):
         ]
 
     def get_data_loaders(self):
-        raise NotImplementedError
+        self.i += self.N_CLASSES_PER_TASK
+        datasets, _ = next(self.iter_benchmark)
+        train_dataset, _, test_dataset = datasets
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=self.args.batch_size,
+            num_workers=4,
+            shuffle=True,
+            drop_last=True,
+        )
+        test_loader = DataLoader(
+            test_dataset,
+            batch_size=self.args.batch_size,
+            num_workers=4,
+            shuffle=True,
+            drop_last=True,
+        )
+        self.test_loaders.append(test_loader)
+        return train_loader, test_loader
 
     @staticmethod
     def get_backbone():
