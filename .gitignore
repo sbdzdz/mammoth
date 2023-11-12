@@ -6,7 +6,6 @@ checkpoints/
 *.png
 *.pt
 *.pkl
-*.sh
 json/
 out/
 err/
