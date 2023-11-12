@@ -7,7 +7,6 @@ checkpoints/
 *.pt
 *.pkl
 *.sh
-*.txt
 json/
 out/
 err/
