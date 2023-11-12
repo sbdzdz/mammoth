@@ -96,7 +96,10 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
             wandb is not None
         ), "Wandb not installed, please install it or run without wandb"
         wandb.init(
-            project=args.wandb_project, entity=args.wandb_entity, config=vars(args)
+            project=args.wandb_project,
+            entity=args.wandb_entity,
+            name=args.wandb_name,
+            config=vars(args),
         )
         args.wandb_url = wandb.run.get_url()
 
