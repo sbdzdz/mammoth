@@ -159,7 +159,7 @@ class ResNet(MammothBackbone):
         raise NotImplementedError("Unknown return type")
 
 
-def resnet18(nclasses: int, nf: int = 32) -> ResNet:
+def resnet18(nclasses: int, nf: int = 64) -> ResNet:
     """
     Instantiates a ResNet18 network.
     :param nclasses: number of output classes
