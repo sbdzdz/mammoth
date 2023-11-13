@@ -60,7 +60,9 @@ def evaluate(
         for data in test_loader:
             with torch.no_grad():
                 inputs, labels = data
-                inputs, labels = inputs.to(model.device), labels.to(model.device)
+                labels = labels.shape_id
+                inputs = inputs.to(device=model.device, dtype=torch.float32)
+                labels = labels.to(device=model.device, dtype=torch.long)
                 if "class-il" not in model.COMPATIBILITY:
                     outputs = model(inputs, k)
                 else:
@@ -103,7 +105,7 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
         )
         args.wandb_url = wandb.run.get_url()
 
-    model.net.to(model.device)
+    model.net.to(device=model.device, dtype=torch.float32)
     results, results_mask_classes = [], []
 
     if not args.disable_log:
@@ -140,15 +142,20 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
                     break
                 if hasattr(dataset.train_loader.dataset, "logits"):
                     inputs, labels, not_aug_inputs, logits = data
-                    inputs = inputs.to(model.device)
-                    labels = labels.to(model.device)
+                    inputs, labels = inputs.to(model.device), labels.to(model.device)
                     not_aug_inputs = not_aug_inputs.to(model.device)
                     logits = logits.to(model.device)
                     loss = model.meta_observe(inputs, labels, not_aug_inputs, logits)
                 else:
-                    inputs, labels, not_aug_inputs = data
-                    inputs, labels = inputs.to(model.device), labels.to(model.device)
-                    not_aug_inputs = not_aug_inputs.to(model.device)
+                    # inputs, labels, not_aug_inputs = data
+                    inputs, labels = data
+                    labels = labels.shape_id
+                    not_aug_inputs = inputs
+                    inputs = inputs.to(device=model.device, dtype=torch.float32)
+                    labels = labels.to(device=model.device, dtype=torch.long)
+                    not_aug_inputs = not_aug_inputs.to(
+                        device=model.device, dtype=torch.float32
+                    )
                     loss = model.meta_observe(inputs, labels, not_aug_inputs)
                 assert not math.isnan(loss)
                 progress_bar.prog(i, len(train_loader), epoch, t, loss)
