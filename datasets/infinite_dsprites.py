@@ -2,15 +2,17 @@
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
-from omegaconf import OmegaConf
 from argparse import Namespace
+
 import torch.nn.functional as F
-import torchvision.transforms as transforms
-from backbone.ResNet18 import resnet18
+import torchvision
 from codis.data.continual_benchmark import ContinualBenchmark
 from codis.data.infinite_dsprites import InfiniteDSprites, Latents
-from datasets.utils.continual_dataset import ContinualDataset
+from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
+from torchvision import transforms
+from backbone.ResNet18 import resnet18
+from datasets.utils.continual_dataset import ContinualDataset
 
 
 class IDSprites(ContinualDataset):
@@ -85,11 +87,15 @@ class IDSprites(ContinualDataset):
             shuffle=True,
             drop_last=True,
         )
+        self.train_loader = train_loader
         self.test_loaders.append(test_loader)
         return train_loader, test_loader
 
     @staticmethod
     def get_backbone():
+        # return torchvision.models.resnet18(
+        #    num_classes=IDSprites.N_CLASSES_PER_TASK * IDSprites.N_TASKS, weights=None
+        # )
         return resnet18(IDSprites.N_CLASSES_PER_TASK * IDSprites.N_TASKS)
 
     @staticmethod
@@ -97,7 +103,7 @@ class IDSprites(ContinualDataset):
         return F.cross_entropy
 
     def get_transform(self):
-        return transforms.ToPILImage()
+        return None
 
     @staticmethod
     def get_scheduler(model, args):
@@ -105,7 +111,7 @@ class IDSprites(ContinualDataset):
 
     @staticmethod
     def get_epochs():
-        return 50
+        return 5
 
     @staticmethod
     def get_batch_size():
