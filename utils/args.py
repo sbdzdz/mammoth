@@ -86,6 +86,7 @@ def add_management_args(parser: ArgumentParser) -> None:
         "--wandb_entity", type=str, default="codis", help="Wandb entity"
     )
     parser.add_argument("--wandb_name", type=str, help="Wandb project name")
+    parser.add_argument("--wandb_group", type=str, help="Wandb group")
     parser.add_argument(
         "--wandb_project", type=str, default="codis", help="Wandb project name"
     )
