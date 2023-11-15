@@ -5,12 +5,10 @@
 from argparse import Namespace
 
 import torch.nn.functional as F
-import torchvision
 from codis.data.continual_benchmark import ContinualBenchmark
 from codis.data.infinite_dsprites import InfiniteDSprites, Latents
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
-from torchvision import transforms
 from backbone.ResNet18 import resnet18
 from datasets.utils.continual_dataset import ContinualDataset
 
@@ -24,8 +22,7 @@ class IDSprites(ContinualDataset):
 
     def __init__(self, args: Namespace) -> None:
         super().__init__(args)
-        self.initialize_benchmark()
-        self.iter_benchmark = iter(self.benchmark)
+        self.benchmark = None
 
     def initialize_benchmark(self):
         shapes = [
@@ -70,6 +67,11 @@ class IDSprites(ContinualDataset):
         ]
 
     def get_data_loaders(self):
+        """Get the data loaders for the benchmark."""
+        if self.benchmark is None:
+            self.initialize_benchmark()
+            self.iter_benchmark = iter(self.benchmark)
+
         self.i += self.N_CLASSES_PER_TASK
         datasets, _ = next(self.iter_benchmark)
         train_dataset, _, test_dataset = datasets
