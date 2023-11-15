@@ -100,6 +100,7 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
         wandb.init(
             project=args.wandb_project,
             entity=args.wandb_entity,
+            group=args.wandb_group,
             name=args.wandb_name,
             config=vars(args),
         )
@@ -141,8 +142,11 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
                 if args.debug_mode and i > 3:
                     break
                 if hasattr(dataset.train_loader.dataset, "logits"):
-                    inputs, labels, not_aug_inputs, logits = data
-                    inputs, labels = inputs.to(model.device), labels.to(model.device)
+                    # inputs, labels, not_aug_inputs, logits = data
+                    inputs, labels, logits = data
+                    labels = labels.shape_id
+                    inputs = inputs.to(model.device)
+                    labels = labels.to(model.device, dtype=torch.long)
                     not_aug_inputs = not_aug_inputs.to(model.device)
                     logits = logits.to(model.device)
                     loss = model.meta_observe(inputs, labels, not_aug_inputs, logits)
