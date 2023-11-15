@@ -20,6 +20,7 @@ source $WORK/virtualenvs/mammoth/bin/activate
 
 python -m pip install --upgrade pip setuptools
 python -m pip install -e $HOME/codis
+python -m pip install -r $HOME/mammoth/requirements.txt
 
 export WANDB__SERVICE_WAIT=300
 export HYDRA_FULL_ERROR=1
