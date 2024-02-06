@@ -86,13 +86,13 @@ class Lwf(ContinualModel):
                     opt.zero_grad()
                     with torch.no_grad():
                         feats = self.net(inputs, returnt="features")
-                    mask = (
-                        self.eye[(self.current_task + 1) * self.cpt - 1]
-                        ^ self.eye[self.current_task * self.cpt - 1]
-                    ).to(self.device)
-                    # mask = self.get_lower_triangular_row(
-                    #    (self.current_task + 1) * self.cpt - 1
-                    # ) ^ self.get_lower_triangular_row(self.current_task * self.cpt - 1)
+                    # mask = (
+                    #    self.eye[(self.current_task + 1) * self.cpt - 1]
+                    #    ^ self.eye[self.current_task * self.cpt - 1]
+                    # ).to(self.device)
+                    mask = self.get_lower_triangular_row(
+                        (self.current_task + 1) * self.cpt - 1
+                    ) ^ self.get_lower_triangular_row(self.current_task * self.cpt - 1)
                     outputs = self.net.classifier(feats)[:, mask]
                     loss = self.loss(outputs, labels - self.current_task * self.cpt)
                     loss.backward()
@@ -126,12 +126,12 @@ class Lwf(ContinualModel):
         self.opt.zero_grad()
         outputs = self.net(inputs)
 
-        mask = self.eye[self.current_task * self.cpt - 1].to(self.device)
-        # mask = self.get_lower_triangular_row(self.current_task * self.cpt - 1)
+        # mask = self.eye[self.current_task * self.cpt - 1].to(self.device)
+        mask = self.get_lower_triangular_row(self.current_task * self.cpt - 1)
         loss = self.loss(outputs[:, mask], labels)
         if logits is not None:
-            mask = self.eye[(self.current_task - 1) * self.cpt - 1].to(self.device)
-            # mask = self.get_lower_triangular_row((self.current_task - 1) * self.cpt - 1)
+            # mask = self.eye[(self.current_task - 1) * self.cpt - 1].to(self.device)
+            mask = self.get_lower_triangular_row((self.current_task - 1) * self.cpt - 1)
             loss += self.args.alpha * modified_kl_div(
                 smooth(self.soft(logits[:, mask]).to(self.device), 2, 1),
                 smooth(self.soft(outputs[:, mask]), 2, 1),
