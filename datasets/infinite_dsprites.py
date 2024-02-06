@@ -27,7 +27,7 @@ class FileDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.path / f"sample_{idx}.png"
         img = read_image(str(img_path))
-        label = self.data[idx].shape_id
+        label = self.targets[idx]
         return img, label
 
 
