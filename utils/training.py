@@ -60,7 +60,6 @@ def evaluate(
         for data in test_loader:
             with torch.no_grad():
                 inputs, labels = data
-                labels = labels.shape_id
                 inputs = inputs.to(device=model.device, dtype=torch.float32)
                 labels = labels.to(device=model.device, dtype=torch.long)
                 if "class-il" not in model.COMPATIBILITY:

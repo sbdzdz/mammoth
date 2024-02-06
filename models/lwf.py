@@ -81,7 +81,6 @@ class Lwf(ContinualModel):
             for epoch in range(self.args.n_epochs):
                 for i, data in enumerate(dataset.train_loader):
                     inputs, labels = data
-                    labels = labels.shape_id
                     inputs = inputs.to(self.device)
                     labels = labels.to(self.device, dtype=torch.long)
                     opt.zero_grad()
