@@ -19,7 +19,7 @@ source $HOME/.bashrc
 source $WORK/virtualenvs/mammoth/bin/activate
 
 python -m pip install --upgrade pip setuptools
-python -m pip install -e $HOME/codis
+python -m pip install -e $HOME/disco
 python -m pip install -r $HOME/mammoth/requirements.txt
 
 export WANDB__SERVICE_WAIT=300
