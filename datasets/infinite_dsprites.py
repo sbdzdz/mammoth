@@ -6,11 +6,8 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Union
 
-import idsprites as ids
 import numpy as np
 import torch.nn.functional as F
-import torchvision.transforms as transforms
-from omegaconf import OmegaConf
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 from torchvision import read_image
 
