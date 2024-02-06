@@ -58,7 +58,8 @@ def add_management_args(parser: ArgumentParser) -> None:
     parser.add_argument(
         "--disable_log", default=0, choices=[0, 1], type=int, help="Enable csv logging"
     )
-
+    parser.add_argument("--data_path", type=str, default="data", help="Path to data.")
+    parser.add_argument("--num_workers", type=int, default=8, help="Number of workers.")
     parser.add_argument(
         "--validation",
         default=0,
