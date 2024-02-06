@@ -18,12 +18,12 @@ additional_args="$@"
 source $HOME/.bashrc
 source $WORK/virtualenvs/mammoth/bin/activate
 
+export WANDB__SERVICE_WAIT=300
+export HYDRA_FULL_ERROR=1
+
 python -m pip install --upgrade pip setuptools
 python -m pip install -e $HOME/disco
 python -m pip install -r $HOME/mammoth/requirements.txt
+python -m pip install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu117
 
-export WANDB__SERVICE_WAIT=300
-export HYDRA_FULL_ERROR=1
-pip install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu117
-
-srun --gres=gpu:1 python $HOME/mammoth/utils/main.py --dataset infinite-dsprites --lr 0.004 $additional_args
+python $HOME/mammoth/utils/main.py --dataset infinite-dsprites --lr 0.004 $additional_args
