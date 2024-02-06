@@ -24,6 +24,6 @@ export HYDRA_FULL_ERROR=1
 python -m pip install --upgrade pip setuptools
 python -m pip install -e $HOME/disco
 python -m pip install -r $HOME/mammoth/requirements.txt
-python -m pip install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu117
+#python -m pip install torch==2.0.1+cu117 torchvision==0.15.2+cu117 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu117
 
 python $HOME/mammoth/utils/main.py --dataset infinite-dsprites --lr 0.004 $additional_args
