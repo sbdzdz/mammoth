@@ -3,89 +3,95 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 from argparse import Namespace
+from pathlib import Path
+from typing import Union
 
+import idsprites as ids
+import numpy as np
 import torch.nn.functional as F
-from codis.data.continual_benchmark import ContinualBenchmark
-from codis.data.infinite_dsprites import InfiniteDSprites, Latents
+import torchvision.transforms as transforms
 from omegaconf import OmegaConf
-from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
+from torchvision import read_image
+
 from backbone.ResNet18 import resnet18
 from datasets.utils.continual_dataset import ContinualDataset
+
+
+class FileDataset(Dataset):
+    def __init__(self, path: Union[Path, str]):
+        self.path = Path(path)
+        factors = np.load(self.path / "factors.npz", allow_pickle=True)
+        self.targets = factors["shape_id"]
+
+    def __len__(self):
+        return len(self.targets)
+
+    def __getitem__(self, idx):
+        img_path = self.path / f"sample_{idx}.png"
+        img = read_image(str(img_path))
+        label = self.data[idx].shape_id
+        return img, label
+
+
+class ContinualBenchmarkDisk:
+    def __init__(
+        self,
+        path: Union[Path, str],
+        accumulate_test_set: bool = False,
+    ):
+        """Initialize the continual learning benchmark.
+        Args:
+            path: The path to the dataset.
+            accumulate_test_set: Whether to accumulate the test set over tasks.
+        """
+        self.path = Path(path)
+        self.accumulate_test_set = accumulate_test_set
+        if self.accumulate_test_set:
+            self.test_sets = []
+
+    def __iter__(self):
+        for task_dir in sorted(
+            self.path.glob("task_*"), key=lambda x: int(x.stem.split("_")[-1])
+        ):
+            train = FileDataset(task_dir / "train")
+            test = FileDataset(task_dir / "test")
+            if self.accumulate_test_set:
+                self.test_sets.append(test)
+                accumulated_test = ConcatDataset(self.test_sets)
+                yield train, accumulated_test
+            else:
+                yield train, test
 
 
 class IDSprites(ContinualDataset):
     NAME = "infinite-dsprites"
     SETTING = "class-il"
     N_CLASSES_PER_TASK = 10
-    N_TASKS = 200
-    IMG_SIZE = 224
+    N_TASKS = 1000
+    IMG_SIZE = 256
+    TRANSFORM = None
 
     def __init__(self, args: Namespace) -> None:
         super().__init__(args)
-        self.benchmark = None
-
-    def initialize_benchmark(self):
-        shapes = [
-            InfiniteDSprites().generate_shape()
-            for _ in range(IDSprites.N_TASKS * IDSprites.N_CLASSES_PER_TASK)
-        ]
-        exemplars = self.generate_canonical_images(shapes, IDSprites.IMG_SIZE)
-        cfg = {
-            "dataset": {
-                "factor_resolution": 8,
-                "img_size": IDSprites.IMG_SIZE,
-                "shapes_per_task": IDSprites.N_CLASSES_PER_TASK,
-                "tasks": IDSprites.N_TASKS,
-                "train_split": 0.98,
-                "val_split": 0.01,
-                "test_split": 0.01,
-            }
-        }
-        cfg = OmegaConf.create(cfg)
-        self.benchmark = ContinualBenchmark(
-            cfg, shapes, exemplars, accumulate_test=False
-        )
-
-    def generate_canonical_images(self, shapes, img_size: int):
-        """Generate a batch of exemplars for training and visualization."""
-        dataset = InfiniteDSprites(
-            img_size=img_size,
-        )
-        return [
-            dataset.draw(
-                Latents(
-                    color=(1.0, 1.0, 1.0),
-                    shape=shape,
-                    shape_id=None,
-                    scale=1.0,
-                    orientation=0.0,
-                    position_x=0.5,
-                    position_y=0.5,
-                )
-            )
-            for shape in shapes
-        ]
+        self.benchmark = ContinualBenchmarkDisk(args.data_path)
+        self.iter_benchmark = iter(self.benchmark)
 
     def get_data_loaders(self):
         """Get the data loaders for the benchmark."""
-        if self.benchmark is None:
-            self.initialize_benchmark()
-            self.iter_benchmark = iter(self.benchmark)
-
         self.i += self.N_CLASSES_PER_TASK
-        datasets, _ = next(self.iter_benchmark)
-        train_dataset, _, test_dataset = datasets
+        train_dataset, test_dataset = next(self.iter_benchmark)
         train_loader = DataLoader(
             train_dataset,
             batch_size=self.args.batch_size,
-            num_workers=4,
+            num_workers=self.args.num_workers,
             shuffle=True,
             drop_last=True,
         )
         test_loader = DataLoader(
             test_dataset,
             batch_size=self.args.batch_size,
-            num_workers=4,
+            num_workers=self.args.num_workers,
             shuffle=True,
             drop_last=True,
         )
@@ -95,9 +101,6 @@ class IDSprites(ContinualDataset):
 
     @staticmethod
     def get_backbone():
-        # return torchvision.models.resnet18(
-        #    num_classes=IDSprites.N_CLASSES_PER_TASK * IDSprites.N_TASKS, weights=None
-        # )
         return resnet18(IDSprites.N_CLASSES_PER_TASK * IDSprites.N_TASKS)
 
     @staticmethod
