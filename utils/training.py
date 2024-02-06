@@ -149,7 +149,6 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
                 if hasattr(dataset.train_loader.dataset, "logits"):
                     # inputs, labels, not_aug_inputs, logits = data
                     inputs, labels, logits = data
-                    labels = labels.shape_id
                     inputs = inputs.to(model.device)
                     labels = labels.to(model.device, dtype=torch.long)
                     not_aug_inputs = not_aug_inputs.to(model.device)
@@ -158,7 +157,6 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
                 else:
                     # inputs, labels, not_aug_inputs = data
                     inputs, labels = data
-                    labels = labels.shape_id
                     not_aug_inputs = inputs
                     inputs = inputs.to(device=model.device, dtype=torch.float32)
                     labels = labels.to(device=model.device, dtype=torch.long)
