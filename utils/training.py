@@ -185,6 +185,7 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
             d2 = {
                 "RESULT_class_mean_accs": mean_acc[0],
                 "RESULT_task_mean_accs": mean_acc[1],
+                "test/accuracy": mean_acc[1],
                 **{f"RESULT_class_acc_{i}": a for i, a in enumerate(accs[0])},
                 **{f"RESULT_task_acc_{i}": a for i, a in enumerate(accs[1])},
             }
