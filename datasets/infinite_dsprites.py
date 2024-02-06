@@ -9,7 +9,7 @@ from typing import Union
 import numpy as np
 import torch.nn.functional as F
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
-from torchvision import read_image
+from torchvision.io import read_image
 
 from backbone.ResNet18 import resnet18
 from datasets.utils.continual_dataset import ContinualDataset
