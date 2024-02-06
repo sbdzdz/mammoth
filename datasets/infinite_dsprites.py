@@ -65,7 +65,7 @@ class IDSprites(ContinualDataset):
     NAME = "infinite-dsprites"
     SETTING = "class-il"
     N_CLASSES_PER_TASK = 10
-    N_TASKS = 1000
+    N_TASKS = 500
     IMG_SIZE = 256
     TRANSFORM = None
 
