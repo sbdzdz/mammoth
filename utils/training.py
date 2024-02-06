@@ -80,9 +80,10 @@ def evaluate(
             accs.append(
                 correct / total * 100 if "class-il" in model.COMPATIBILITY else 0
             )
+            accs_mask_classes.append(correct_mask_classes / total * 100)
         except ZeroDivisionError:
             accs.append(0)
-        accs_mask_classes.append(correct_mask_classes / total * 100)
+            accs_mask_classes.append(0)
 
     model.net.train(status)
     return accs, accs_mask_classes
