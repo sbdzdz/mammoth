@@ -76,7 +76,12 @@ def evaluate(
                     _, pred = torch.max(outputs.data, 1)
                     correct_mask_classes += torch.sum(pred == labels).item()
 
-        accs.append(correct / total * 100 if "class-il" in model.COMPATIBILITY else 0)
+        try:
+            accs.append(
+                correct / total * 100 if "class-il" in model.COMPATIBILITY else 0
+            )
+        except ZeroDivisionError:
+            accs.append(0)
         accs_mask_classes.append(correct_mask_classes / total * 100)
 
     model.net.train(status)
