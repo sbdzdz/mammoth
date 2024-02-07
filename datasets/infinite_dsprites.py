@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
+import torch
 import torch.nn.functional as F
-from torch.utils.data import ConcatDataset, DataLoader, Dataset
+from torch.utils.data import Subset, DataLoader, Dataset
 from torchvision.io import read_image
 
 from backbone.ResNet18 import resnet18
@@ -19,14 +20,14 @@ class FileDataset(Dataset):
     def __init__(self, path: Union[Path, str]):
         self.path = Path(path)
         factors = np.load(self.path / "factors.npz", allow_pickle=True)
-        self.targets = factors["shape_id"]
+        self.targets = torch.tensor(factors["shape_id"]).to(torch.long)
 
     def __len__(self):
         return len(self.targets)
 
     def __getitem__(self, idx):
         img_path = self.path / f"sample_{idx}.png"
-        img = read_image(str(img_path))
+        img = read_image(str(img_path)) / 255.0
         label = self.targets[idx]
         return img, label
 
@@ -44,8 +45,7 @@ class ContinualBenchmarkDisk:
         """
         self.path = Path(path)
         self.accumulate_test_set = accumulate_test_set
-        if self.accumulate_test_set:
-            self.test_sets = []
+        self.test_subset = 100
 
     def __iter__(self):
         for task_dir in sorted(
@@ -53,12 +53,10 @@ class ContinualBenchmarkDisk:
         ):
             train = FileDataset(task_dir / "train")
             test = FileDataset(task_dir / "test")
-            if self.accumulate_test_set:
-                self.test_sets.append(test)
-                accumulated_test = ConcatDataset(self.test_sets)
-                yield train, accumulated_test
-            else:
-                yield train, test
+            test = Subset(
+                test, np.random.choice(len(test), self.test_subset, replace=False)
+            )
+            yield train, test
 
 
 class IDSprites(ContinualDataset):
