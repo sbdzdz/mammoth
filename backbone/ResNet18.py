@@ -135,7 +135,8 @@ class ResNet(MammothBackbone):
         :param returnt: return type (a string among 'out', 'features', 'all')
         :return: output tensor (output_classes)
         """
-
+        print("\n\n\n\n")
+        self.get_tensors_on_device(self)
         out = relu(self.bn1(self.conv1(x)))  # 64, 32, 32
         if hasattr(self, "maxpool"):
             out = self.maxpool(out)
@@ -157,6 +158,17 @@ class ResNet(MammothBackbone):
             return (out, feature)
 
         raise NotImplementedError("Unknown return type")
+
+    @staticmethod
+    def get_tensors_on_device(self):
+        import gc
+
+        for obj in gc.get_objects():
+            try:
+                if torch.is_tensor(obj) and obj.is_cuda:
+                    print(type(obj), obj.size(), obj.device)
+            except:
+                pass
 
 
 def resnet18(nclasses: int, nf: int = 64) -> ResNet:
