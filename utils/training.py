@@ -106,7 +106,6 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
             project=args.wandb_project,
             entity=args.wandb_entity,
             group=args.wandb_group,
-            name=args.wandb_name,
             config=vars(args),
         )
         args.wandb_url = wandb.run.get_url()
@@ -143,6 +142,7 @@ def train(model: ContinualModel, dataset: ContinualDataset, args: Namespace) -> 
         for epoch in range(model.args.n_epochs):
             if args.model == "joint":
                 continue
+            print(f"Task {t + 1}, Epoch {epoch + 1}/{model.args.n_epochs}")
             for i, data in enumerate(train_loader):
                 if args.debug_mode and i > 3:
                     break
