@@ -117,7 +117,7 @@ class IDSprites(ContinualDataset):
 
     @staticmethod
     def get_batch_size():
-        return 256
+        return 64
 
     @staticmethod
     def get_minibatch_size():
